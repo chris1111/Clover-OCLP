@@ -79,7 +79,7 @@ class DetectRootPatch:
         self.brightness_legacy         = False
         self.legacy_audio              = False
         self.legacy_wifi               = False
-        self.modern_wifi               = False
+        self.modern_wifi               = True
         self.legacy_gmux               = False
         self.legacy_keyboard_backlight = False
         self.legacy_uhci_ohci          = False
@@ -122,9 +122,9 @@ class DetectRootPatch:
                 if gpu.arch in [device_probe.NVIDIA.Archs.Tesla] and self.constants.force_nv_web is False:
                     if self.os_major > non_metal_os:
                         self.nvidia_tesla = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                         if os_data.os_data.ventura in self.constants.legacy_accel_support:
-                            self.amfi_shim_bins = True
+                            self.amfi_shim_bins = False
                         self.legacy_keyboard_backlight = self._check_legacy_keyboard_backlight()
                         self.requires_root_kc = True
                 elif gpu.arch == device_probe.NVIDIA.Archs.Kepler and self.constants.force_nv_web is False:
@@ -144,9 +144,9 @@ class DetectRootPatch:
                             self.kepler_gpu = True
                             self.supports_metal = True
                             if self.os_major >= os_data.os_data.ventura:
-                                self.amfi_must_disable = True
+                                self.amfi_must_disable = False
                                 if (self.os_major == os_data.os_data.ventura and self.os_minor >= 4) or self.os_major > os_data.os_data.ventura:
-                                    self.amfi_shim_bins = True
+                                    self.amfi_shim_bins = False
                 elif gpu.arch in [
                     device_probe.NVIDIA.Archs.Fermi,
                     device_probe.NVIDIA.Archs.Kepler,
@@ -155,24 +155,24 @@ class DetectRootPatch:
                 ]:
                     if self.os_major > os_data.os_data.mojave:
                         self.nvidia_web = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                         if os_data.os_data.ventura in self.constants.legacy_accel_support:
-                            self.amfi_shim_bins = True
+                            self.amfi_shim_bins = False
                         self.needs_nv_web_checks = True
                         self.requires_root_kc = True
                 elif gpu.arch == device_probe.AMD.Archs.TeraScale_1:
                     if self.os_major > non_metal_os:
                         self.amd_ts1 = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                         if os_data.os_data.ventura in self.constants.legacy_accel_support:
-                            self.amfi_shim_bins = True
+                            self.amfi_shim_bins = False
                         self.requires_root_kc = True
                 elif gpu.arch == device_probe.AMD.Archs.TeraScale_2:
                     if self.os_major > non_metal_os:
                         self.amd_ts2 = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                         if os_data.os_data.ventura in self.constants.legacy_accel_support:
-                            self.amfi_shim_bins = True
+                            self.amfi_shim_bins = False
                         self.requires_root_kc = True
                 elif gpu.arch in [
                     device_probe.AMD.Archs.Legacy_GCN_7000,
@@ -209,7 +209,7 @@ class DetectRootPatch:
                             self.legacy_gcn = True
                         self.supports_metal = True
                         self.requires_root_kc = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                 elif gpu.arch == device_probe.AMD.Archs.Vega:
                      if self.os_major > os_data.os_data.monterey:
                         if "AVX2" in self.constants.computer.cpu.leafs:
@@ -218,47 +218,47 @@ class DetectRootPatch:
                         self.legacy_vega = True
                         self.supports_metal = True
                         self.requires_root_kc = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                 elif gpu.arch == device_probe.Intel.Archs.Iron_Lake:
                     if self.os_major > non_metal_os:
                         self.iron_gpu = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                         if os_data.os_data.ventura in self.constants.legacy_accel_support:
-                            self.amfi_shim_bins = True
+                            self.amfi_shim_bins = False
                         self.legacy_keyboard_backlight = self._check_legacy_keyboard_backlight()
                         self.requires_root_kc = True
                 elif gpu.arch == device_probe.Intel.Archs.Sandy_Bridge:
                     if self.os_major > non_metal_os:
                         self.sandy_gpu = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                         if os_data.os_data.ventura in self.constants.legacy_accel_support:
-                            self.amfi_shim_bins = True
+                            self.amfi_shim_bins = False
                         self.legacy_keyboard_backlight = self._check_legacy_keyboard_backlight()
                         self.requires_root_kc = True
                 elif gpu.arch == device_probe.Intel.Archs.Ivy_Bridge:
                     if self.os_major > os_data.os_data.big_sur:
                         self.ivy_gpu = True
                         if self.os_major >= os_data.os_data.ventura:
-                            self.amfi_must_disable = True
+                            self.amfi_must_disable = False
                             if (self.os_major == os_data.os_data.ventura and self.os_minor >= 4) or self.os_major > os_data.os_data.ventura:
-                                self.amfi_shim_bins = True
+                                self.amfi_shim_bins = False
                         self.supports_metal = True
                 elif gpu.arch == device_probe.Intel.Archs.Haswell:
                     if self.os_major > os_data.os_data.monterey:
                         self.haswell_gpu = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                         if (self.os_major == os_data.os_data.ventura and self.os_minor >= 4) or self.os_major > os_data.os_data.ventura:
-                            self.amfi_shim_bins = True
+                            self.amfi_shim_bins = False
                         self.supports_metal = True
                 elif gpu.arch == device_probe.Intel.Archs.Broadwell:
                     if self.os_major > os_data.os_data.monterey:
                         self.broadwell_gpu = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                         self.supports_metal = True
                 elif gpu.arch == device_probe.Intel.Archs.Skylake:
                     if self.os_major > os_data.os_data.monterey:
                         self.skylake_gpu = True
-                        self.amfi_must_disable = True
+                        self.amfi_must_disable = False
                         self.supports_metal = True
 
         if self.supports_metal is True:
