@@ -126,6 +126,30 @@ class PatchSysVolume:
         self.mount_obj.unmount(ignore_errors=True)
 
 
+    def _run_sanity_checks(self) -> bool:
+        """
+        Run sanity check before continuing patching
+        """
+        logging.info("- Running sanity checks before patching")
+
+        mounted_system_version = Path(self.mount_location) / "System/Library/CoreServices/SystemVersion.plist"
+
+        if not mounted_system_version.exists():
+            logging.error("- Failed to find SystemVersion.plist")
+            return False
+        
+        try:
+            mounted_data = plistlib.load(open(mounted_system_version, "rb"))
+            if mounted_data["ProductBuildVersion"] != self.constants.detected_os_build:
+                logging.error(f"- SystemVersion.plist build version mismatch: {mounted_data['ProductBuildVersion']} vs {self.constants.detected_os_build}")
+                return False
+        except:
+            logging.error("- Failed to parse SystemVersion.plist")
+            return False
+        
+        return True
+
+
     def _merge_kdk_with_root(self, save_hid_cs: bool = False) -> None:
         """
         Merge Kernel Debug Kit (KDK) with the root volume
@@ -920,13 +944,20 @@ class PatchSysVolume:
             return
 
         logging.info("- Verifying whether Root Patching possible")
-        if sys_patch_detect.DetectRootPatch(self.computer.real_model, self.constants).verify_patch_allowed(print_errors=not self.constants.wxpython_variant) is True:
-            logging.info("- Patcher is capable of patching")
-            if self._check_files():
-                if self._mount_root_vol() is True:
+        if sys_patch_detect.DetectRootPatch(self.computer.real_model, self.constants).verify_patch_allowed(print_errors=not self.constants.wxpython_variant) is False:
+            logging.error("- Cannot continue with patching!!!")
+            return
+
+        logging.info("- Patcher is capable of patching")
+        if self._check_files():
+            if self._mount_root_vol() is True:
+                if self._run_sanity_checks():
                     self._patch_root_vol()
                 else:
-                    logging.info("- Recommend rebooting the machine and trying to patch again")
+                    self._unmount_root_vol()
+                    logging.info("- Please ensure that you do not have any updates pending")
+            else:
+                logging.info("- Recommend rebooting the machine and trying to patch again")
 
 
     def start_unpatch(self) -> None:
@@ -935,8 +966,11 @@ class PatchSysVolume:
         """
 
         logging.info("- Starting Unpatch Process")
-        if sys_patch_detect.DetectRootPatch(self.computer.real_model, self.constants).verify_patch_allowed(print_errors=True) is True:
-            if self._mount_root_vol() is True:
-                self._unpatch_root_vol()
-            else:
-                logging.info("- Recommend rebooting the machine and trying to patch again")
+        if sys_patch_detect.DetectRootPatch(self.computer.real_model, self.constants).verify_patch_allowed(print_errors=True) is False:
+            logging.error("- Cannot continue with unpatching!!!")
+            return
+
+        if self._mount_root_vol() is True:
+            self._unpatch_root_vol()
+        else:
+            logging.info("- Recommend rebooting the machine and trying to patch again")
